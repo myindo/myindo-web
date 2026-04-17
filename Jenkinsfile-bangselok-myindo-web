@@ -13,9 +13,9 @@ pipeline {
         DOCKER_VERSION=sh (returnStdout: true, script: 'echo v$(./git-buildnumber)').trim()
         APPLICATION_NAME = 'myindo-web'
         HELM_NAME = 'myindo-web'
-        HELM_NS = 'pembangunan-prod'
+        HELM_NS = 'myindo-web'
         HELM_ENV = 'prod'
-        HELM_VALUES = 'values-myindo-myindo-web-prod.yaml'
+        HELM_VALUES = 'values-myindo-web.yaml'
         K8S_CLUSTER = 'htz-k8s'
         HELM_REPO = 'oci://registry-1.docker.io/solusik8s'
         HELM_CHART = 'myindo'
@@ -63,7 +63,7 @@ pipeline {
                 sh "echo build image : ${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_VERSION}"
                 withCredentials([file(credentialsId: 'env-myindo-web-prod', variable: 'ENV_FROM_JENKINS')]) {
                     sh '''
-                     docker compose -f docker-compose-bangselok-pembangunan-prod.yml --env-file ${ENV_FROM_JENKINS} build
+                     docker compose -f docker-compose-myindo-web.yml --env-file ${ENV_FROM_JENKINS} build
                     '''
                 }
             }
@@ -89,7 +89,7 @@ pipeline {
             }
             steps {
                 sh 'echo Push Image to ${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_VERSION}'
-                sh 'docker compose -f docker-compose-bangselok-pembangunan-prod.yml push'
+                sh 'docker compose -f docker-compose-myindo-web.yml push'
             }
         }
         stage('Deploy') {	

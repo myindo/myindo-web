@@ -4,11 +4,11 @@
 
 replicaCount: 1
 
-nameOverride: 'pembangunan-ulp'
-fullnameOverride: 'pembangunan-ulp'
+nameOverride: 'myindo-web'
+fullnameOverride: 'myindo-web'
 
 image:
-  repository: docker-hub.solusi-k8s.com/myindo/myindo-pembangunan
+  repository: docker-hub.solusi-k8s.com/myindo/myindo-web
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: 'v1.19.6'
@@ -74,11 +74,11 @@ service:
 
 livenessProbe:
   httpGet:
-    path: /payment/actuator/health
+    path: /
     port: http
 readinessProbe:
   httpGet:
-    path: /payment/actuator/health
+    path: /
     port: http
 
 ingress:
@@ -87,19 +87,19 @@ ingress:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-sahir-web-id
   hosts:
-    - host: myindo.co.id
+    - host: myindo.id
       paths:
-        - path: /payment
+        - path: /
           pathType: Prefix
           backend:
             service:
-              name: web
+              name: myindo-web
               port:
                 number: 3000
   tls:
     - hosts:
-        - myindo.co.id
-      secretName: myindo.co.id-tls
+        - myindo.id
+      secretName: myindo.id-tls
 
 httpRoute:
   enabled: true
@@ -113,13 +113,13 @@ httpRoute:
           sectionName: https
           port: 443
       hostnames:
-        - myindo.co.id
+        - myindo.id
       rules:
         - matches:
             - path:
-                value: /payment
+                value: /
           backendRefs:
-            - name: pembangunan-ulp
+            - name: myindo-web
               port: 3000
 
 resources:
