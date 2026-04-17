@@ -15,7 +15,7 @@ pipeline {
         HELM_NAME = 'myindo-web'
         HELM_NS = 'pembangunan-prod'
         HELM_ENV = 'prod'
-        HELM_VALUES = 'values-myindo-myindo-web-web-prod.yaml'
+        HELM_VALUES = 'values-myindo-myindo-web-prod.yaml'
         K8S_CLUSTER = 'htz-k8s'
         HELM_REPO = 'oci://registry-1.docker.io/solusik8s'
         HELM_CHART = 'myindo'
