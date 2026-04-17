@@ -10,4 +10,6 @@ services:
       DOCKER_USER: ${DOCKER_USER:-myindo}
       DOCKER_IMAGE: ${DOCKER_IMAGE:-myindo-myindo-web}
       DOCKER_VERSION: ${DOCKER_VERSION:-v1.0.1-dev}
+    ports:
+      - '3000:3000'
     image: '${DOCKER_REGISTRY:-docker-hub.solusi-k8s.com}/${DOCKER_USER:-myindo}/${DOCKER_IMAGE:-myindo-web}:${DOCKER_VERSION:-v1.0.1-dev}'
