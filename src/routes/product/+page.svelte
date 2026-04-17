@@ -368,7 +368,7 @@
 							class="lucide lucide-check text-purple-600"
 							aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg
 						>
-						<span>Support Up to 1100 user</span>
+						<span>Support Up to 500 user</span>
 					</div>
 					<div class="flex items-center gap-1.5">
 						<svg
