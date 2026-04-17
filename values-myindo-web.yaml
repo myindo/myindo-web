@@ -114,6 +114,7 @@ httpRoute:
           port: 443
       hostnames:
         - myindo.id
+        - myindo.co.id
       rules:
         - matches:
             - path:
