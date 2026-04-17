@@ -26,7 +26,7 @@ LABEL Component="myindo-web" \
 WORKDIR /app
 
 COPY --from=builder /app/build build/
-COPY --from=builder /app/src/custom-server.js build/
+COPY --from=builder /app/src/index.js build/
 # COPY --from=builder /app/.env-wararena-dahboard-develop /build/.env 
 
 COPY --from=builder /app/node_modules node_modules/
