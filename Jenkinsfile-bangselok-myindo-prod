@@ -1,0 +1,134 @@
+pipeline {
+    options {
+      gitLabConnection('gitlab')
+    }
+    agent {
+        label 'bangselok-myindo';
+    }
+    environment {
+        DOCKER_REGISTRY = 'docker-hub.solusi-k8s.com'
+        DOCKER_USER = 'myindo'
+        DOCKER_IMAGE = 'myindo-web/prod'
+        JAR_VERSION = 'v1.0.1'
+        DOCKER_VERSION=sh (returnStdout: true, script: 'echo v$(./git-buildnumber)').trim()
+        APPLICATION_NAME = 'myindo-web'
+        HELM_NAME = 'myindo-web'
+        HELM_NS = 'pembangunan-prod'
+        HELM_ENV = 'prod'
+        HELM_VALUES = 'values-myindo-myindo-web-web-prod.yaml'
+        K8S_CLUSTER = 'htz-k8s'
+        HELM_REPO = 'oci://registry-1.docker.io/solusik8s'
+        HELM_CHART = 'myindo'
+        HELM_VERSION = '1.0.4'
+
+    }
+    stages {
+        stage('Initiate') {
+            post {
+                failure {
+                    updateGitlabCommitStatus name: 'Initiate', state: 'failed'
+                }
+                success {
+                    updateGitlabCommitStatus name: 'Initiate', state: 'success'
+                }
+                aborted {
+                    updateGitlabCommitStatus name: 'Initiate', state: 'canceled'
+                }
+            }
+            steps {
+                sh 'echo "path : `pwd`"'
+            }
+        }
+        stage('Build Image') { 
+            when{
+                anyOf {
+                    expression{
+                        return GIT_BRANCH =~ /main/
+                    }
+                }
+            }
+            post {
+                failure {
+                    updateGitlabCommitStatus name: 'Build Image', state: 'failed'
+                }
+                success {
+                    updateGitlabCommitStatus name: 'Build Image', state: 'success'
+                }
+                aborted {
+                    updateGitlabCommitStatus name: 'Build Image', state: 'canceled'
+                }
+            }
+            steps {
+                sh 'echo Build Image'
+                sh "echo build image : ${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_VERSION}"
+                withCredentials([file(credentialsId: 'env-myindo-web-prod', variable: 'ENV_FROM_JENKINS')]) {
+                    sh '''
+                     docker compose -f docker-compose-bangselok-pembangunan-prod.yml --env-file ${ENV_FROM_JENKINS} build
+                    '''
+                }
+            }
+        }
+        stage('Push Image') {
+            when{
+                anyOf {
+                    expression{
+                        return GIT_BRANCH =~ /main/
+                    }
+                }
+            }
+            post {
+                failure {
+                    updateGitlabCommitStatus name: 'Push Image', state: 'failed'
+                }
+                success {
+                    updateGitlabCommitStatus name: 'Push Image', state: 'success'
+                }
+                aborted {
+                    updateGitlabCommitStatus name: 'Push Image', state: 'canceled'
+                }
+            }
+            steps {
+                sh 'echo Push Image to ${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_IMAGE}:${DOCKER_VERSION}'
+                sh 'docker compose -f docker-compose-bangselok-pembangunan-prod.yml push'
+            }
+        }
+        stage('Deploy') {	
+            when{
+                anyOf {
+                    expression{
+                        return GIT_BRANCH =~ /main/
+                    }
+                }
+            }
+            steps {
+                withKubeConfig([credentialsId: 'htz-k8s-myindo-jenkins-token', serverUrl: 'https://htz-rke.solusi-k8s.com/k8s/clusters/local']) {
+                    withCredentials([file(credentialsId: 'env-myindo-web-prod', variable: 'ENV_FROM_JENKINS')]) {
+                        sh '''
+                            echo create secret ${HELM_NAME}-secret-${DOCKER_VERSION}
+                            echo "kubectl --namespace ${HELM_NS} create secret generic ${HELM_NAME}-secret-${DOCKER_VERSION} --from-env-file=${ENV_FROM_JENKINS}"
+                            kubectl --namespace ${HELM_NS} create secret generic ${HELM_NAME}-secret-${DOCKER_VERSION} --from-env-file="${ENV_FROM_JENKINS}" --save-config --dry-run=client -o yaml | kubectl apply -f -
+                        '''
+                    }
+                    sh '''
+                        echo running helm - HELM_NAME=${HELM_NAME} 
+                        echo image.repository=${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_IMAGE}
+                        echo image.tag=${DOCKER_VERSION}
+                        ${HOME}/bin/helm upgrade --install ${HELM_NAME} ${HELM_REPO}/${HELM_CHART} \
+                            --set nameOverride=${HELM_NAME} \
+                            --set fullnameOverride=${HELM_NAME} \
+                            --version ${HELM_VERSION} \
+                            --set image.repository=${DOCKER_REGISTRY}/${DOCKER_USER}/${DOCKER_IMAGE} \
+                            --set image.tag=${DOCKER_VERSION} \
+                            --namespace ${HELM_NS} \
+                            --set envFrom[0].secretRef.name=${HELM_NAME}-secret-${DOCKER_VERSION} \
+                            --values ${HELM_VALUES}
+                    '''
+                }
+
+            }
+
+        }
+    }
+
+}
+

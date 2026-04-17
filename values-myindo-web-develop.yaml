@@ -1,0 +1,162 @@
+# Default values for myindo-template.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+nameOverride: 'pembangunan-ulp'
+fullnameOverride: 'pembangunan-ulp'
+
+image:
+  repository: docker-hub.solusi-k8s.com/myindo/myindo-pembangunan
+  pullPolicy: Always
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: 'v1.19.6'
+
+kind: Deployment
+
+secretData:
+  enabled: false
+  data: []
+    # - filename: namafile
+    #   filepath: pathfile
+
+env: []
+
+# - name: SPRING_PROFILES_ACTIVE
+#   value: "dev"
+# - name: APP_OPTS
+#   value: "-Dspring.profiles.active=dev"
+# - name: USERNAME
+#   value: username
+
+envFrom: []
+# - secretRef:
+#     name: nama-secret
+
+hostAliases: []
+# - ip: "192.168.48.3"
+#   hostnames:
+#   - "cloud-config-server.solusi-k8s.com"
+
+imagePullSecrets:
+  - name: myindo-read
+
+podLabels: {}
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ''
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 3000
+  protocol: TCP
+  containerPort: 3000
+
+livenessProbe:
+  httpGet:
+    path: /payment/actuator/health
+    port: http
+readinessProbe:
+  httpGet:
+    path: /payment/actuator/health
+    port: http
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-sahir-web-id
+  hosts:
+    - host: myindo.co.id
+      paths:
+        - path: /payment
+          pathType: Prefix
+          backend:
+            service:
+              name: web
+              port:
+                number: 3000
+  tls:
+    - hosts:
+        - myindo.co.id
+      secretName: myindo.co.id-tls
+
+httpRoute:
+  enabled: true
+  routes:
+    - name: http
+      annotations: {}
+      parentRefs:
+        - kind: Gateway
+          name: apisix
+          namespace: ingress-apisix
+          sectionName: https
+          port: 443
+      hostnames:
+        - myindo.co.id
+      rules:
+        - matches:
+            - path:
+                value: /payment
+          backendRefs:
+            - name: pembangunan-ulp
+              port: 3000
+
+resources:
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  limits: {}
+  #   cpu: 100m
+  #   memory: 128Mi
+  requests: {}
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 400Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+volumeMounts: []
+# - name: garuda-dev
+#   mountPath: /media/garuda
+# - name: garuda-dev
+#   mountPath: /usr/local/tomcat/logs
+#   subPath: tomcat-logs/garuda-web-portal
+
+extraVolumes: []
+# - name: garuda-dev
+#   nfs:
+#     server: htz-storage.solusi-k8s.com
+#     path: /ServerDocker/garuda-dev
+#     readOnly: false
