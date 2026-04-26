@@ -182,7 +182,7 @@
 				<div>
 					<h2 class="mb-5 font-semibold">Get in touch</h2>
 					<div class="space-y-2">
-						<p>+62 813-3750-7137</p>
+						<p>+62 851-9551-8581</p>
 						<p>halo@myindo.co.id</p>
 					</div>
 				</div>
