@@ -83,5 +83,7 @@
 			>
 		</div>
 	</nav>
-	{@render children()}
+	<div class="py-5">
+		{@render children()}
+	</div>
 </div>

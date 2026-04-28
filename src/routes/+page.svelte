@@ -180,6 +180,20 @@
 					</ul>
 				</div>
 				<div>
+					<h2 class="mb-5 font-semibold">Legal</h2>
+					<ul class="space-y-2">
+						<li>
+							<a class="hover:text-slate-600 dark:hover:text-slate-300" href={resolve('/privacy-policy')}>Privacy Policy</a>
+						</li>
+						<li>
+							<a class="hover:text-slate-600 dark:hover:text-slate-300" href={resolve('/disclaimer')}>Disclaimer</a>
+						</li>
+						<li>
+							<a class="hover:text-slate-600 dark:hover:text-slate-300" href={resolve('/terms-and-conditions')}>Terms & Conditions</a>
+						</li>
+					</ul>
+				</div>
+				<div>
 					<h2 class="mb-5 font-semibold">Get in touch</h2>
 					<div class="space-y-2">
 						<p>+62 851-9551-8581</p>
